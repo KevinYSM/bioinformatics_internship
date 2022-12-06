@@ -17,17 +17,18 @@ set -u
 set -o errexit
 #set -o pipefail
 set -o nounset
-set -o xtrace
-set -o verbose
+#set -o xtrace
+#set -o verbose
 
 DATA_DIRECTORY=/data/local/proj/bioinformatics_project/data
 
-if [ ! -d "$DATA_DIRECTORY"]
+if [ ! -d "$DATA_DIRECTORY" ]
 then
-    echo "ERROR: Data directory not found"
-    return -1
+	echo "ERROR: Data directory not found"
+else
+	echo "Data directory found"    
 fi
 
-echo "Data directory found"
+
 
 
