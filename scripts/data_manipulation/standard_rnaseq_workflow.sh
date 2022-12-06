@@ -11,8 +11,10 @@ set -o nounset
 set -o xtrace
 set -o verbose
 
-#STEP ZERO: Ensure file system is set-up correctly
+PROJECT_DIRECTORY=/data/local/proj/bioinformatics_project
 
+#STEP ZERO: Ensure file system is set-up correctly
+sh ./$PROJECT_DIRECTORY/scripts/tools/initdir_standard_rnaseq.sh
 
 #STEP ONE: Perform STAR alignment on all read pairs
 

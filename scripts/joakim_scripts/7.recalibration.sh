@@ -22,7 +22,7 @@ bam="$1"
 tmpdir=tmp_recal_$(basename "$bam")
 if [ -d "$tmpdir" ]
 then
-    rm -r "$tmpdir"
+        rm -r "$tmpdir"
 fi
 mkdir -p "$tmpdir"
 
