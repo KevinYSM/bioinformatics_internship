@@ -14,8 +14,8 @@ set -o verbose
 PROJECT_DIRECTORY=/data/local/proj/bioinformatics_project
 
 #STEP ZERO: Ensure file system is set-up correctly
-sh ./$PROJECT_DIRECTORY/scripts/tools/initdir_standard_rnaseq.sh
-
+sh "$PROJECT_DIRECTORY"/scripts/tools/initdir_standard_rnaseq.sh
+#testing vscode tie-in
 #STEP ONE: Perform STAR alignment on all read pairs
 
 #STEP TWO: Use Samtools to sort aligned .bam files by name
