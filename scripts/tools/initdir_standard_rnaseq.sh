@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ensures correct file hierarchy is present in data folder
+# Ensures correct file hierarchy is present in data folder.
 #INPUT: data folder directory
 
 #ls data/
