@@ -41,5 +41,12 @@ do
         ./"$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/SAM_sort_name.sh $ALIGNED $out_dir_2
 done
 
+wait
+
 
 #STEP THREE: Use HtSeq to count read frequencies for genes.
+out_dir_3=/data/loca/data/processed/rna/counts
+for SORTED in $(find "$out_dir_2"/ -name "*.bam")
+do
+        ./"$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/HTSEQ_count.sh $ALIGNED $out_dir_3
+done
