@@ -1,0 +1,4 @@
+
+#STEP ONE: Perform STAR alignment on all read pairs
+in_dir=$1
+./standard_rnaseq_workflow.sh: line 26: $1: unbound variable

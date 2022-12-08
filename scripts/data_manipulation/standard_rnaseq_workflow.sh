@@ -14,13 +14,13 @@ set -o verbose
 PROJECT_DIRECTORY=/data/local/proj/bioinformatics_project
 
 #STEP ZERO: Ensure file system is set-up correctly, generate log file
-./"$PROJECT_DIRECTORY"/scripts/tools/initdir_standard_rnaseq.sh
+bash "$PROJECT_DIRECTORY"/scripts/tools/initdir_standard_rnaseq.sh
 
 if [ ! -d "logs" ]
 then
     mkdir logs
 fi
-exec 1>logs/$(basename "$0").$(date +"%r%d%h%y" | awk '{print $1"_"$2}').log 2>&1 #how does this line of code work?
+1>logs/$(basename "$0").$(date +"%r%d%h%y" | awk '{print $1"_"$2}').log 2>&1 #how does this line of code work?
 
 #STEP ONE: Perform STAR alignment on all read pairs
 in_dir=$1
@@ -28,7 +28,7 @@ out_dir=/data/local/data/interim/rna/aligned
 
 for R1 in $(find "$1"/ -name "*_R1_001.fastq.gz")
 do
-        ./"$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/STAR_align_human.sh $R1
+        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/STAR_align_human.sh $R1
 done
 
 wait
@@ -38,7 +38,7 @@ wait
 out_dir_2=/data/local/data/interim/rna/sorted_name
 for ALIGNED in $(find "$out_dir"/ -name "*.bam")
 do
-        ./"$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/SAM_sort_name.sh $ALIGNED $out_dir_2
+        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/SAM_sort_name.sh $ALIGNED $out_dir_2
 done
 
 wait
@@ -48,5 +48,5 @@ wait
 out_dir_3=/data/loca/data/processed/rna/counts
 for SORTED in $(find "$out_dir_2"/ -name "*.bam")
 do
-        ./"$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/HTSEQ_count.sh $ALIGNED $out_dir_3
+        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/HTSEQ_count.sh $ALIGNED $out_dir_3
 done
