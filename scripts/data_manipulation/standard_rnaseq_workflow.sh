@@ -8,7 +8,7 @@ set -u
 set -o errexit
 #set -o pipefail
 set -o nounset
-set -o xtrace
+#set -o xtrace
 set -o verbose
 
 PROJECT_DIRECTORY=/data/local/proj/bioinformatics_project
@@ -23,19 +23,19 @@ fi
 1>logs/$(basename "$0").$(date +"%r%d%h%y" | awk '{print $1"_"$2}').log 2>&1 #how does this line of code work?
 
 #STEP ONE: Perform STAR alignment on all read pairs
-in_dir=$1
-out_dir=/data/local/data/interim/rna/aligned
+#in_dir=$1
+out_dir=/data/local/proj/bioinformatics_project/data/interim/rna/aligned
 
-for R1 in $(find "$1"/ -name "*_R1_001.fastq.gz")
-do
-        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/STAR_align_human.sh $R1
-done
+#for R1 in $(find "$1"/ -name "*_R1_001.fastq.gz")
+#do
+#        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/STAR_align_human.sh $R1
+#done
 
-wait
+#wait
 
 
 #STEP TWO: Use Samtools to sort aligned .bam files by name
-out_dir_2=/data/local/data/interim/rna/sorted_name
+out_dir_2=/data/local/proj/bioinformatics_project/data/interim/rna/sorted_name
 for ALIGNED in $(find "$out_dir"/ -name "*.bam")
 do
         bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/SAM_sort_name.sh $ALIGNED $out_dir_2
@@ -45,8 +45,8 @@ wait
 
 
 #STEP THREE: Use HtSeq to count read frequencies for genes.
-out_dir_3=/data/loca/data/processed/rna/counts
+out_dir_3=/data/loca/proj/bioinformatics_project/data/processed/rna/counts
 for SORTED in $(find "$out_dir_2"/ -name "*.bam")
 do
-        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/HTSEQ_count.sh $ALIGNED $out_dir_3
+        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/HTSEQ_count.sh $SORTED $out_dir_3
 done
