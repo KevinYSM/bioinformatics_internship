@@ -13,7 +13,8 @@ n_cores=30
 fasta=/data/local/reference/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.fasta
 gtf=/data/local/reference/igenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf
 genomeDir=/data/local/proj/bioinformatics_project/data/external/genome
-out_dir=/data/local/data/interim/rna/aligned
+#out_dir=/data/local/data/interim/rna/aligned oops
+out_dir=/data/local/proj/bioinformatics_project/data/interim/rna/aligned
 
 
 sample=$(basename "$1" | awk -F"_R1" '{print $1}')
