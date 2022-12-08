@@ -5,7 +5,7 @@ then
 fi
 exec 1>logs/$(basename "$0").$(date +"%r%d%h%y" | awk '{print $1"_"$2}').log 2>&1
 
-set -u
+set -u(dirname "$bam")
 set -o errexit
 set -o pipefail
 set -o nounset
