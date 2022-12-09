@@ -3,3 +3,10 @@ data/interim/
 data/processed/
 */logs/
 scripts/data_manipulation/logs/
+scripts/data_manipulation/PCB*
+scripts/nextflow/work/
+scripts/nextflow/hello/
+
+scripts/nextflow/standard_rnaseq_workflow/.*
+scripts/nextflow/standard_rnaseq_workflow/.nextflow/
+scripts/nextflow/standard_rnaseq_workflow/work/

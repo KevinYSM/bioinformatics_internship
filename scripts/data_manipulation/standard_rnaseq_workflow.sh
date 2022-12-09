@@ -36,12 +36,12 @@ out_dir=/data/local/proj/bioinformatics_project/data/interim/rna/aligned
 
 #STEP TWO: Use Samtools to sort aligned .bam files by name
 out_dir_2=/data/local/proj/bioinformatics_project/data/interim/rna/sorted_name
-for ALIGNED in $(find "$out_dir"/ -name "*.bam")
-do
-        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/SAM_sort_name.sh $ALIGNED $out_dir_2
-done
+#for ALIGNED in $(find "$out_dir"/ -name "*.bam")
+#do
+#        bash "$PROJECT_DIRECTORY"/scripts/data_manipulation/standard_rnaseq_scripts/SAM_sort_name.sh $ALIGNED $out_dir_2
+#done
 
-wait
+#wait
 
 
 #STEP THREE: Use HtSeq to count read frequencies for genes.
