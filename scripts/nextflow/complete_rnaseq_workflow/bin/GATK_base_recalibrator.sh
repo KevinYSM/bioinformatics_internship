@@ -16,17 +16,17 @@ then
 fi
 mkdir -p "$tmpdir"
 
-fasta=/data/local/reference/GATK_resource_bundle/hg38/hg38/Homo_sapiens_assembly38.fasta
+fasta=$2
 
-k1=/data/local/reference/GATK_resource_bundle/hg38/hg38/dbsnp_146.hg38.vcf.gz \
-k2=/data/local/reference/GATK_resource_bundle/hg38/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz \
+k1=$3
+k2=$4
 
 gatk BaseRecalibrator --tmp-dir "$tmpdir" \
     -I "$bam" \
     -R "$fasta" \
     --known-sites "$k1" \
     --known-sites "$k2" \
-    -O $(basename "output_dir=$2$bam" ".bam").recal_pass1.table
+    -O $(basename "$bam" ".bam").recal_pass1.table
 
 #--known-sites="$k3" \
 

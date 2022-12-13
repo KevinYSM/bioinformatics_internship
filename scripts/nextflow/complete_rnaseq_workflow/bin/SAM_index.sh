@@ -9,5 +9,4 @@ set -o verbose
 
 bam=$1
 
-samtools sort -O BAM -o $(basename "$bam" ".bam").sorted.bam "$bam"
 samtools index $(basename "$bam" ".bam").sorted.bam(dirname "$bam")
