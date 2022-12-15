@@ -38,6 +38,7 @@ process SAM_sort_name{
 }
 
 process HTSEQ_count{
+        cpus 6
         publishDir params.outdir, mode: 'copy'
         input:
         file SORTED_bam_file
