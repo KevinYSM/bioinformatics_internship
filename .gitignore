@@ -11,3 +11,9 @@ scripts/nextflow/standard_rnaseq_workflow/.*
 scripts/nextflow/standard_rnaseq_workflow/.nextflow/
 scripts/nextflow/standard_rnaseq_workflow/work/
 scripts/nextflow/test_standard_rnaseq_workflow/*
+scripts/nextflow/complete_rnaseq_workflow/.*
+scripts/nextflow/complete_rnaseq_workflow/.nextflow/
+scripts/nextflow/complete_rnaseq_workflow/work/
+*.log
+**/cache/
+.nextflow*
