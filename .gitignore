@@ -13,3 +13,4 @@ scripts/nextflow/test_standard_rnaseq_workflow/*
 **/cache/
 .nextflow*
 **/work/
+data/raw/
