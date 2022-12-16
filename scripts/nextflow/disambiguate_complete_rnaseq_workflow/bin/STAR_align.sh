@@ -9,7 +9,7 @@ set -o verbose
 
 ulimit -n 65535 #temporary file limit
 
-n_cores=30
+n_cores=1
 
 #out_dir=/data/local/data/interim/rna/aligned oops
 #out_dir=/data/local/proj/bioinformatics_project/data/interim/rna/aligned
@@ -29,7 +29,7 @@ LB="$SM" # Assume that each sample has only been subjected to one library prepar
 
 if [ ! -f "$genomeDir"/Genome ]
 then #run once for a given genome
-    STAR --runMode genomeGenerate --genomeDir "$genomeDir" --genomeFastaFiles "$fasta" --runThreadN "$n_cores"
+    STAR --runMode genomeGenerate --genomeDir "$genomeDir" --genomeFastaFiles "$fasta" --runThreadN "$n_cores" --readFilesCommand zcat
 fi
 
 maxReadLength=$(awk 'NR%4 == 2 {lengths[length($0)]++} END {for (l in lengths) {print l, lengths[l]}}' <(gunzip -c "$1") | awk '{print $1}' | tail -n 1)
