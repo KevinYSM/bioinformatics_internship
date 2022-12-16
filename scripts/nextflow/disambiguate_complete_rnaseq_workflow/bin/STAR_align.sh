@@ -27,6 +27,11 @@ SM="$sample"
 PL=ILLUMINA
 LB="$SM" # Assume that each sample has only been subjected to one library preparation, which has been used for both runs (no other information has been given to indicate otherwise).
 
+if [ ! -f "$genomeDir"/Genome ]
+then #run once for a given genome
+    STAR --runMode genomeGenerate --genomeDir "$genomeDir" --genomeFastaFiles "$fasta" --runThreadN "$n_cores"
+fi
+
 maxReadLength=$(awk 'NR%4 == 2 {lengths[length($0)]++} END {for (l in lengths) {print l, lengths[l]}}' <(gunzip -c "$1") | awk '{print $1}' | tail -n 1)
 
 STAR --runThreadN "$n_cores" --outBAMsortingThreadN "$n_cores" --twopassMode Basic --genomeDir "$genomeDir" --outFilterType BySJout --readFilesIn "$R1" "$R2" --outSAMtype BAM SortedByCoordinate --outFileNamePrefix "$sample"."$ID". --outSAMattrRGline ID:${ID} PL:${PL} LB:${LB} SM:${SM} --sjdbOverhang $(expr $maxReadLength - 1) --sjdbGTFfile "$gtf" --outSAMmapqUnique 60 --readFilesCommand zcat
