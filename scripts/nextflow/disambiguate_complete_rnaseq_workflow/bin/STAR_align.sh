@@ -9,7 +9,7 @@ set -o verbose
 
 ulimit -n 65535 #temporary file limit
 #ulimit -v 28204859828
-n_cores=1
+n_cores=15
 
 #out_dir=/data/local/data/interim/rna/aligned oops
 #out_dir=/data/local/proj/bioinformatics_project/data/interim/rna/aligned
