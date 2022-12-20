@@ -21,7 +21,7 @@ R2=$2
 fasta=$3
 gtf=$4
 genomeDir=$5
-ID=$(cat "$1" | head -n 1 | awk -F"@" '{print $2}' | awk -F":" '{print $3}').$(cat "$1" | head -n 1 | awk -F"@" '{print $2}' | awk -F":" '{print $4}')
+ID=$(zcat "$1" | head -n 1 | awk -F"@" '{print $2}' | awk -F":" '{print $3}').$(zcat "$1" | head -n 1 | awk -F"@" '{print $2}' | awk -F":" '{print $4}')
 #ID=$(zcat "$R1" | head -n 1 | awk -F":" '{print $1}' | awk -F"@" '{print $2}').$(zcat "$R1" | head -n 1 | awk -F":" '{print $2}')
 SM="$sample"
 PL=ILLUMINA
@@ -34,5 +34,5 @@ fi
 
 maxReadLength=$(awk 'NR%4 == 2 {lengths[length($0)]++} END {for (l in lengths) {print l, lengths[l]}}' <(gunzip -c "$1" )| awk '{print $1}' | tail -n 1)
 
-STAR --runThreadN "$n_cores" --outBAMsortingThreadN "$n_cores" --twopassMode Basic --genomeDir "$genomeDir" --outFilterType BySJout --readFilesIn "$R1" "$R2" --outSAMtype BAM SortedByCoordinate --outFileNamePrefix "$sample"."$ID". --outSAMattrRGline ID:${ID} PL:${PL} LB:${LB} SM:${SM} --sjdbOverhang $(expr $maxReadLength - 1) --sjdbGTFfile "$gtf" --outSAMmapqUnique 60 --readFilesCommand zcat
+STAR --runThreadN "$n_cores" --outBAMsortingThreadN "$n_cores" --twopassMode Basic --genomeDir "$genomeDir" --outFilterType BySJout --readFilesIn "$R1" "$R2" --outSAMtype BAM SortedByCoordinate --outFileNamePrefix "$sample"."$ID".$6. --outSAMattrRGline ID:${ID} PL:${PL} LB:${LB} SM:${SM} --sjdbOverhang $(expr $maxReadLength - 1) --sjdbGTFfile "$gtf" --outSAMmapqUnique 60 --readFilesCommand zcat
 

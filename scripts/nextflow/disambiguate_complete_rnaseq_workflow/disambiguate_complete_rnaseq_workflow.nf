@@ -24,15 +24,11 @@ process STAR_human{
         memory '40G'
         input:
                 file RNA_read_pair
-                path (fasta_human) from params.fasta_human
-                path (gtf_human) from params.gtf_human
-                path (humanGenomeDir) from params.humanGenomeDir
-
         output:
         path '*.bam'
 
         """
-        STAR_align.sh ${RNA_read_pair[1]} ${RNA_read_pair[2]} $fasta_human $gtf_human $humanGenomeDir
+        STAR_align.sh ${RNA_read_pair[1]} ${RNA_read_pair[2]} ${params.fasta_human} ${params.gtf_human} ${params.humanGenomeDir} 'human'
         """
 }
 
@@ -41,15 +37,13 @@ process STAR_mouse{
         memory '40G'
         input:
                 file RNA_read_pair
-                path (fasta_mouse) from params.fasta_mouse
-                path (gtf_mouse) from params.gtf_mouse
-                path (mouseGenomeDir) from params.mouseGenomeDir
+
 
         output:
         path '*.bam'
 
         """
-        STAR_align.sh ${RNA_read_pair[1]} ${RNA_read_pair[2]} $fasta_mouse $gtf_mouse $mouseGenomeDir
+        STAR_align.sh ${RNA_read_pair[1]} ${RNA_read_pair[2]} ${params.fasta_mouse} ${params.gtf_mouse} ${params.mouseGenomeDir} 'mouse'
         """
 }
 
@@ -157,11 +151,15 @@ workflow{
         STAR_ch_human=STAR_human(read_pairs_ch)
         STAR_ch_mouse=STAR_mouse(read_pairs_ch)
 
-        //DISAMBIGUATE_human=SAM_sort_name(STAR_ch_human)
-        //DISAMBIGUATE_mouse=SAM_sort_name_2(STAR_ch_mouse)
+      
 
-        //DISAMBIGUATE_ch=DISAMBIGUATE_human.join(DISAMBIGUATE_mouse)
-        //DISAMBIGUATE_ch.view()
+        DISAMBIGUATE_human=SAM_sort_name(STAR_ch_human)
+        DISAMBIGUATE_mouse=SAM_sort_name_2(STAR_ch_mouse)
+
+        DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
+        DISAMBIGUATE_human.view()
+        DISAMBIGUATE_mouse.view()
+        DISAMBIGUATE_ch.view()
         
         //SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
         //GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
