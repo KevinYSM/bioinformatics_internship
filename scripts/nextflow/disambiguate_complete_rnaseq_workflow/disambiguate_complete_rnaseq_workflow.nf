@@ -73,34 +73,39 @@ process SAM_sort_name_2{
 
 }
 
-process HTSEQ_count{
-        publishDir params.outdir, mode: 'copy'
-        input:
-        file SORTED_bam_file
 
-        output:
-        path '*.gene_counts'
-
-        """
-        HTSEQ_count.sh $SORTED_bam_file
-        """
-}
 process NGS_disambiguate{
        
         input:
-        file BAM_files
+        path BAM_files
+
+        output:
+        path '*.txt'
+
+        """
+        echo ${BAM_files[1]} > "${BAM_files[1]}".txt
+       echo ${BAM_files[2]} > "${BAM_files[2]}".txt
+
+        """
+}
+process NGS_disambiguate_original{
+       
+        input:
+        path BAM_file_1, BAM_file_2
 
         output:
         path '*.bam'
 
         """
-        if
-                BAM_files[1].contains(.host.bam)
-                
+        if [ ${BAM_files[1]} == *"human"* ]
         then
                 NGS_disambiguate.sh ${BAM_files[1]} ${BAM_files[2]}
-        else
+               
+        elif [ ${BAM_files[1]} == *"mouse"* ]      
+        then
                 NGS_disambiguate.sh ${BAM_files[2]} ${BAM_files[1]}
+        else
+                echo "Error"
         fi
 
         """
@@ -120,6 +125,35 @@ process SAM_sort{
         """
 }
 
+
+process SAM_sort_name_3{
+        input:
+        file ALIGNED_bam_file
+
+        output:
+        path '*.bam'
+
+        """
+        SAM_sort_name.sh $ALIGNED_bam_file
+        """
+
+}
+
+
+
+
+process HTSEQ_count{
+        publishDir params.outdir, mode: 'copy'
+        input:
+        file SORTED_bam_file
+
+        output:
+        path '*.gene_counts'
+
+        """
+        HTSEQ_count.sh $SORTED_bam_file
+        """
+}
 process GATK_mark_duplicates{
         input:
         file SORTED_bam_file
@@ -168,16 +202,16 @@ workflow{
         DISAMBIGUATE_human=SAM_sort_name(STAR_ch_human)
         DISAMBIGUATE_mouse=SAM_sort_name_2(STAR_ch_mouse)
 
+        //DISAMBIGUATE_human.into { human_1; human_2 }
+        //DISAMBIGUATE_mouse.int { mouse_1; mouse_2 }
+
+
+        
         DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
-        DISAMBIGUATE_human.view()
-        DISAMBIGUATE_mouse.view()
-        DISAMBIGUATE_ch.view()
-
-        HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse).view()
         
-
-        
-        //SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
+      
+        //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
+        SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
         //GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
         //GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
         //GATK_base_recalibration(GATK_split_ch)
