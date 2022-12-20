@@ -73,6 +73,18 @@ process SAM_sort_name_2{
 
 }
 
+process HTSEQ_count{
+        publishDir params.outdir, mode: 'copy'
+        input:
+        file SORTED_bam_file
+
+        output:
+        path '*.gene_counts'
+
+        """
+        HTSEQ_count.sh $SORTED_bam_file
+        """
+}
 process NGS_disambiguate{
        
         input:
@@ -160,6 +172,10 @@ workflow{
         DISAMBIGUATE_human.view()
         DISAMBIGUATE_mouse.view()
         DISAMBIGUATE_ch.view()
+
+        HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse).view()
+        
+
         
         //SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
         //GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
