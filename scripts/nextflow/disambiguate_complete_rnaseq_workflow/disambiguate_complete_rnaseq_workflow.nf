@@ -74,36 +74,24 @@ process SAM_sort_name_2{
 }
 
 
+
 process NGS_disambiguate{
        
         input:
         path BAM_files
 
         output:
-        path '*.txt'
-
-        """
-        echo ${BAM_files[1]} > "${BAM_files[1]}".txt
-       echo ${BAM_files[2]} > "${BAM_files[2]}".txt
-
-        """
-}
-process NGS_disambiguate_original{
-       
-        input:
-        path BAM_file_1, BAM_file_2
-
-        output:
-        path '*.bam'
+        path '*.disambiguatedSpeciesA.bam'
 
         """
         if [ ${BAM_files[1]} == *"human"* ]
         then
-                NGS_disambiguate.sh ${BAM_files[1]} ${BAM_files[2]}
+                NGS_disambiguate.sh ${BAM_files[1]} ${BAM_files[0]}
                
         elif [ ${BAM_files[1]} == *"mouse"* ]      
         then
-                NGS_disambiguate.sh ${BAM_files[2]} ${BAM_files[1]}
+                NGS_disambiguate.sh ${BAM_files[0]} ${BAM_files[1]}
+
         else
                 echo "Error"
         fi
@@ -166,7 +154,7 @@ process GATK_mark_duplicates{
         """
 }
 
-process GATK_split_ch{
+process GATK_split{
         input:
         file DUPLICATES_bam_file
 
@@ -209,12 +197,19 @@ workflow{
         
         DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
         
-      
-        //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
+        DISAMBIGUATE_ch.view()
+        
         SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
         //GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
+        //HTSEQ_count(GATK_duplicates_ch)
         //GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
-        //GATK_base_recalibration(GATK_split_ch)
+        //GATK_base_recalibration_ch=GATK_split(GATK_split_ch)
+        //GATK_base_recalibration(GATK_base_recalibration_ch)
+        //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
+        
+       
+        //
+        //
 
 
 

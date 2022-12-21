@@ -1,0 +1,42 @@
+digraph "dag" {
+p0 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromFilePairs"];
+p1 [label="STAR_human"];
+p0 -> p1 [label="read_pairs_ch"];
+
+p1 [label="STAR_human"];
+p3 [label="SAM_sort_name"];
+p1 -> p3;
+
+p0 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromFilePairs"];
+p2 [label="STAR_mouse"];
+p0 -> p2 [label="read_pairs_ch"];
+
+p2 [label="STAR_mouse"];
+p4 [label="SAM_sort_name_2"];
+p2 -> p4;
+
+p3 [label="SAM_sort_name"];
+p5 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="merge"];
+p3 -> p5;
+
+p4 [label="SAM_sort_name_2"];
+p5 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="merge"];
+p4 -> p5;
+
+p5 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="merge"];
+p6 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="view"];
+p5 -> p6 [label="DISAMBIGUATE_ch"];
+
+p6 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="view"];
+p7 [shape=point];
+p6 -> p7;
+
+p5 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="merge"];
+p8 [label="NGS_disambiguate"];
+p5 -> p8 [label="DISAMBIGUATE_ch"];
+
+p8 [label="NGS_disambiguate"];
+p9 [shape=point];
+p8 -> p9;
+
+}

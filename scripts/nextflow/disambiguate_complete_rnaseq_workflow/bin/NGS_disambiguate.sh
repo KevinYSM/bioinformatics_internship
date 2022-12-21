@@ -14,4 +14,4 @@ bam_mouse="$2"
 
 sname=$(basename "$bam_human" | awk -F"." '{print $1}')
 
-ngs_disambiguate -s "$sname" -a star "$bam_human" "$bam_mouse"
+ngs_disambiguate -o '.' -s "$sname" -a star "$bam_human" "$bam_mouse"
