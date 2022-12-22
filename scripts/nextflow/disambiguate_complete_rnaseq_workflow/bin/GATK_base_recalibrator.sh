@@ -9,7 +9,7 @@ set -o verbose
 
 bam=$1
 
-tmpdir=/data/local/proj/bioinformatics_project/scripts/nextflow/complete_rnaseq_workflow/temp_dir
+tmpdir=/data/local/proj/bioinformatics_project/scripts/nextflow/disambiguate_complete_rnaseq_workflow/temp_dir/$(basename "$bam" ".bam")
 if [ -d "$tmpdir" ]
 then
     rm -r "$tmpdir"

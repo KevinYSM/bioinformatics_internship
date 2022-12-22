@@ -161,7 +161,7 @@ process GATK_split{
         output:
         path '*.bam'
         """
-        GATK_split_N_cigar_reads.sh $DUPLICATES_bam_file ${params.fasta}
+        GATK_split_N_cigar_reads.sh $DUPLICATES_bam_file ${params.fasta_human}
         """
 }
 
@@ -174,10 +174,9 @@ process GATK_base_recalibration{
         path '*'
 
         """
-        GATK_base_recalibrator.sh $SPLIT_bam_file ${params.fasta} ${k1} ${k2}
+        GATK_base_recalibrator.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2}
         """
 }
-
 
 
 workflow{
@@ -185,34 +184,21 @@ workflow{
         STAR_ch_human=STAR_human(read_pairs_ch)
         STAR_ch_mouse=STAR_mouse(read_pairs_ch)
 
-      
-
         DISAMBIGUATE_human=SAM_sort_name(STAR_ch_human)
         DISAMBIGUATE_mouse=SAM_sort_name_2(STAR_ch_mouse)
 
-        //DISAMBIGUATE_human.into { human_1; human_2 }
-        //DISAMBIGUATE_mouse.int { mouse_1; mouse_2 }
-
-
-        
         DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
-        
-        DISAMBIGUATE_ch.view()
-        
         SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
-        //GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
-        //HTSEQ_count(GATK_duplicates_ch)
-        //GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
-        //GATK_base_recalibration_ch=GATK_split(GATK_split_ch)
-        //GATK_base_recalibration(GATK_base_recalibration_ch)
+        GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
+
+        HTSEQ_count(SAM_sort_ch)
+
+        GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
+        GATK_split_ch.view()
+        GATK_base_recalibration_ch=GATK_split(GATK_split_ch)
+        GATK_base_recalibration_ch.view()
+        GATK_base_recalibration(GATK_base_recalibration_ch)
         //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
-        
-       
-        //
-        //
-
-
-
 
         //GATK_duplicates_ch=SAM_index(SAM_index_ch)
         
@@ -220,4 +206,21 @@ workflow{
         //STAR_ch=STAR_align_human(read_pairs_ch)
         //SAM_ch=SAM_sort_name(STAR_ch)
         //HTSEQ_count(SAM_ch)
+}
+
+workflow.onComplete {
+
+   println ( workflow.success ? """
+       Pipeline execution summary
+       ---------------------------
+       Completed at: ${workflow.complete}
+       Duration    : ${workflow.duration}
+       Success     : ${workflow.success}
+       workDir     : ${workflow.workDir}
+       exit status : ${workflow.exitStatus}
+       """ : """
+       Failed: ${workflow.errorReport}
+       exit status : ${workflow.exitStatus}
+       """
+   )
 }
