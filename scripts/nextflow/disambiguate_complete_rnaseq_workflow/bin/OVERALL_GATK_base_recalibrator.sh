@@ -26,7 +26,7 @@ gatk BaseRecalibrator --tmp-dir "$tmpdir" \
     -R "$fasta" \
     --known-sites "$k1" \
     --known-sites "$k2" \
-    -O $(basename "$bam" ".bam").recal_pass1.table
+    -O $(basename "$bam" ".bam").recal.pass1.table
 
 #--known-sites="$k3" \
 
@@ -48,7 +48,7 @@ gatk BaseRecalibrator --tmp-dir "$tmpdir" \
 gatk ApplyBQSR --tmp-dir "$tmpdir" \
     -I $(dirname "$bam")/$(basename "$bam" ".bam").recal.pass1.bam \
     -R "$fasta" \
-    --bqsr-recal-file $output_dir/$(basename "$bam" ".bam").recal.pass1.bam.recal_pass2.table \
+    --bqsr-recal-file $output_dir/$(basename "$bam" ".bam").recal.pass1.bam.recal.pass2.table \
     -O $(basename "$bam" ".bam").recal.pass2.bam
 
 if [ -f $(dirname "$bam")/$(basename "$bam" ".bam").recal.pass2.bam ]
