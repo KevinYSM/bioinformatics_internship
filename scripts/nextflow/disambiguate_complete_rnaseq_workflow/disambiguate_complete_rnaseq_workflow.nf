@@ -3,11 +3,11 @@
 nextflow.enable.dsl=2
 
 // params.PROJECT_DIRECTORY="/data/local/proj/bioinformatics_project/data/processed/complete_rnaseq_workflow_nextflow"
-params.outdir="/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow"
+params.outdir="/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/"
 
 
-params.RNA_aligned_directory="/data/local/proj/bioinformatics_project/data/interim/rna/aligned"
-params.RNA_raw_reads_directory="/data/local/proj/bioinformatics_project/data/raw/rna/PCB-28-PDX_S4_L004_R{1,2}_*.fastq.gz"
+//params.RNA_aligned_directory="/data/local/proj/bioinformatics_project/data/interim/rna/aligned"
+params.RNA_raw_reads_directory="/data/local/proj/bioinformatics_project/data/raw/rna/batch2/*_L004_R{1,2}_*.fastq.gz"
 params.fasta_human="/data/local/reference/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.fasta"
 params.fasta_mouse="/data/local/reference/mouse/GCF_000001635.27_GRCm39_genomic.fna"
 params.gtf_human="/data/local/reference/igenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf"
@@ -131,7 +131,8 @@ process SAM_sort_name_3{
 
 
 process HTSEQ_count{
-        publishDir params.outdir, mode: 'copy'
+        maxForks 2
+        publishDir "${params.outdir}", mode: 'copy'
         input:
         file SORTED_bam_file
 
@@ -143,6 +144,7 @@ process HTSEQ_count{
         """
 }
 process GATK_mark_duplicates{
+        maxForks 2
         input:
         file SORTED_bam_file
 
@@ -155,6 +157,8 @@ process GATK_mark_duplicates{
 }
 
 process GATK_split{
+        maxForks 2
+        publishDir "${params.outdir}", mode: 'symlink'
         input:
         file DUPLICATES_bam_file
 
@@ -165,20 +169,60 @@ process GATK_split{
         """
 }
 
-process GATK_base_recalibration{
-        publishDir params.outdir, mode:'copy'
+process GATK_base_recalibrator_1{
+        maxForks 2
         input:
         file SPLIT_bam_file
+
+        output:
+        path '*.recal.pass1.table'
+
+        """
+        GATK_base_recalibrator_1.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2}
+        """
+}
+process GATK_apply_bqsr_1 {
+        maxForks 2
+        publishDir "${params.outdir}" , mode: 'symlink'
+        input:
+        file BASE_recalibrated_table
+
+        output:
+        path '*.recal.pass1.bam'
+
+        """
+        GATK_apply_bqsr_1.sh $BASE_recalibrated_table ${params.fasta_human} ${params.k1} ${params.k2}
+        """
+}
+
+process GATK_base_recalibrator_2 {
+        maxForks 2
+        input:
+        file BAM_bqsr_file
+
+        output:
+        path '*.recal.pass2.table'
+
+        """
+        GATK_base_recalibrator_2.sh $BAM_bqsr_file ${params.fasta_human} ${params.k1} ${params.k2}
+        """
+}
+
+process GATK_apply_bqsr_2 {
+        maxForks 2
+        publishDir "${params.outdir}", mode: 'symlink'
+        input:
+        file BASE_recalibrated_file
 
         output:
         path '*'
 
         """
-        GATK_base_recalibrator.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2}
+        GATK_apply_bqsr_2.sh $BASE_recalibrated_file ${params.fasta_human} ${params.k1} ${params.k2}
         """
+
+        
 }
-
-
 workflow{
         read_pairs_ch = Channel.fromFilePairs(params.RNA_raw_reads_directory, flat: true)
         STAR_ch_human=STAR_human(read_pairs_ch)
@@ -188,16 +232,23 @@ workflow{
         DISAMBIGUATE_mouse=SAM_sort_name_2(STAR_ch_mouse)
 
         DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
+        //DISAMBIGUATE_ch.view()
         SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
         GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
 
-        HTSEQ_count(SAM_sort_ch)
+       // HTSEQ_count(SAM_sort_ch)
 
         GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
-        GATK_split_ch.view()
+ 
         GATK_base_recalibration_ch=GATK_split(GATK_split_ch)
+
         GATK_base_recalibration_ch.view()
-        GATK_base_recalibration(GATK_base_recalibration_ch)
+        BQSR_1_ch=GATK_base_recalibrator_1(GATK_base_recalibration_ch)
+        BQSR_1_ch.view()
+        GATK_base_recalibration_2_ch=GATK_apply_bqsr_1(BQSR_1_ch)
+
+        BQSR_2_ch=GATK_base_recalibrator_2(GATK_base_recalibration_2_ch)
+        GATK_apply_bqsr_2(BQSR_2_ch)
         //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
 
         //GATK_duplicates_ch=SAM_index(SAM_index_ch)

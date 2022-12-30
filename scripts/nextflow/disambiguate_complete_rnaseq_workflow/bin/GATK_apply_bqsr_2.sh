@@ -13,7 +13,7 @@ bam=$(basename "$recal_pass2_table" ".recal.pass2.table")".bam"
 
 tmpdir="/data/local/proj/bioinformatics_project/scripts/nextflow/disambiguate_complete_rnaseq_workflow/temp_dir/""$(basename "$bam" ".bam")"
 fasta=$2
-outdir="/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/output"
+outdir="/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/"
 
 k1=$3
 k2=$4

@@ -14,3 +14,7 @@ scripts/nextflow/test_standard_rnaseq_workflow/*
 .nextflow*
 **/work/
 data/raw/
+
+*.dot
+*.html
+*.txt
