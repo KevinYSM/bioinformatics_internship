@@ -17,6 +17,7 @@ process GATK_haplotype_caller{
                 file RECAL_bam_file
         output:
         path '*.vcf.gz'
+        path '*.tbi'
 
         """
         variant_calling.sh ${RECAL_bam_file} ${params.fasta_human} 
@@ -27,6 +28,7 @@ process GATK_variant_filtration{
         publishDir "${params.outdir}", mode: 'symlink'
         input:
                 file VCF_file
+                file TBI_file
         output:
         path '*.vcf.gz'
 
