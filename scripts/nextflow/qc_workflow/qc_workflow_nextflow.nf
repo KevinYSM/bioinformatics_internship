@@ -2,7 +2,7 @@
 // Declare syntax version
 nextflow.enable.dsl=2
 
-params.fastq_directory="/data/local/proj/bioinformatics_project/data/raw/rna/*.fastq.gz"
+params.fastq_directory="/data/local/proj/bioinformatics_project/data/raw/exome/*.fastq.gz"
 
 params.outdir="/data/local/proj/bioinformatics_project/data/processed/qc_workflow_nextflow"
 
@@ -10,7 +10,7 @@ process FASTQC{
     input:
         file FASTQ_file
     output:
-        path '*.fastqc'
+        path '*'
 
     """
     fastqc ${FASTQ_file}
@@ -24,7 +24,7 @@ process MULTI{
         file("*") 
     
     output:
-        "*.html"
+        "*"
     
     """
     multiqc .

@@ -13,8 +13,9 @@ scripts/nextflow/test_standard_rnaseq_workflow/*
 **/cache/
 .nextflow*
 **/work/
+**/rna_work/
 data/raw/
-
+**/bin/AGeNT**
 *.dot
 *.html
 *.txt
