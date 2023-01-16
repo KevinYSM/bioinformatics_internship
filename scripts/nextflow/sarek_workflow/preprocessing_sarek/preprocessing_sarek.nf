@@ -1,5 +1,5 @@
 params.EXOME_trimmed_reads_directory="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/*_R{1,2}_*.fastq.gz"
-params.TEST_EXOME_trimmed_reads_directory="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/16*_R{1,2}_*.fastq.gz"
+params.TEST_EXOME_trimmed_reads_directory="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/50*_R{1,2}_*.fastq.gz"
 params.outdir="/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/"
 params.disambiguate_outdir="/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/disambiguate/"
 params.trimmed_dir="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis"
@@ -11,9 +11,11 @@ process BWA_align_human {
     input:
         file EXOME_trimmed_read_pair
     output:
-        path "*.sam"
+      
     """
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > /data/local/proj/bioinformatics_project/data/interim/exome/sam/${EXOME_trimmed_read_pair[0]}_human.sam
+    filename_human=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)
+   
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > /data/local/proj/bioinformatics_project/data/interim/exome/sam/\${filename_human::-21}_human.sam
     """
 }
 
@@ -23,9 +25,10 @@ process BWA_align_mouse {
     input:
         file EXOME_trimmed_read_pair
     output:
-        path "*.sam"
+        
     """
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > /data/local/proj/bioinformatics_project/data/interim/exome/sam/${EXOME_trimmed_read_pair[0]}_mouse.sam
+    filename_mouse=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)}
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > /data/local/proj/bioinformatics_project/data/interim/exome/sam/\${filename_mouse::-21}_mouse.sam
     """
 }
 
@@ -95,16 +98,16 @@ process SAREK_pipeline {
 }
 
 workflow{
-    trimmed_read_pairs_ch=Channel.fromFilePairs(params.TEST_EXOME_trimmed_reads_directory, flat:true)
+    trimmed_read_pairs_ch=Channel.fromFilePairs(params.EXOME_trimmed_reads_directory, flat:true)
     trimmed_read_pairs_ch.view();
-    DISAMBIGUATE_human=BWA_align_human(trimmed_read_pairs_ch)
-    DISAMBIGUATE_mouse=BWA_align_mouse(trimmed_read_pairs_ch)
+    BWA_align_human(trimmed_read_pairs_ch)
+    BWA_align_mouse(trimmed_read_pairs_ch)
     
   
     
-    DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
-    DISAMBIGUATE_ch.view()
-    convert_to_fastq_ch=NGS_disambiguate(DISAMBIGUATE_ch).filter(~/.disambiguatedSpeciesA.bam/)
+    //DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
+    //DISAMBIGUATE_ch.view()
+    //convert_to_fastq_ch=NGS_disambiguate(DISAMBIGUATE_ch).filter(~/.disambiguatedSpeciesA.bam/)
     //SAM_bam_to_fastq(convert_to_fastq_ch)
     //SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
 }
