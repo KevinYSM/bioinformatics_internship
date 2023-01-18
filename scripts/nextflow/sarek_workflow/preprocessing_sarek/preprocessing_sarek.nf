@@ -62,9 +62,9 @@ process BWA_align_human {
     output:
         path "*.sam"
     """
-    filename_human=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)
+    filename_human=\$(basename ${EXOME_trimmed_read_pair[0]} _Cut_0.fastq.gz)
     echo ${EXOME_trimmed_read_pair}
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > ./\${filename_human::-21}_human.sam
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} > ./\${filename_human::-21}_human.sam
     """
 }
 
@@ -79,7 +79,7 @@ process BWA_align_mouse {
         
     """
     filename_mouse=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)}
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > ./\${filename_mouse::-21}_mouse.sam
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > ./\${filename_mouse::-22}_mouse.sam
     """
 }
 
