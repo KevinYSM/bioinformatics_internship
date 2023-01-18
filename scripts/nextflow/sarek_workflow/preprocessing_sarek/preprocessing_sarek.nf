@@ -60,26 +60,30 @@ process BWA_align_human {
     input:
         path EXOME_trimmed_read_pair
     output:
-        path "*.sam"
+        path "*.bam"
     """
     filename_human=\$(basename ${EXOME_trimmed_read_pair[0]} _Cut_0.fastq.gz)
     echo ${EXOME_trimmed_read_pair}
     bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} > ./\${filename_human::-21}_human.sam
+    samtools view -bS \${filename_human::-21}_human.sam > \${filename_human::-21}.bam
+    rm -f \${filename_human::-21}_human.sam 
+
     """
 }
 
 
 process BWA_align_mouse {
-    publishDir "${params.outdir}/sam", mode: 'copy'
-    maxForks 2
+    publishDir "${params.outdir}", mode: 'copy'
+    maxForks 4
     input:
-        file EXOME_trimmed_read_pair
+        path EXOME_trimmed_read_pair
     output:
-        path "*.sam"
+        file "*.bam"
         
     """
-    filename_mouse=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)}
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} > ./\${filename_mouse::-22}_mouse.sam
+    filename_mouse=\$(basename ${EXOME_trimmed_read_pair[0]} _Cut_0.fastq.gz)
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} | samtools sort -n -O BAM -o \${filename_mouse::-22}_mouse.sorted_by_name.bam -
+    
     """
 }
 
@@ -108,7 +112,7 @@ process SAM_sort_name_2 {
 
 
 process NGS_disambiguate {
-    publishDir "${params.outdir}/disambiguate" , mode: 'copy', pattern: "*"//save disambiguatedSpeciesA.bam
+    publishDir "${params.outdir}/disambiguate" , mode: 'copy', pattern: "*"//save disambiguatedSpeciesA.bam and .txts
     input:
         path BAM_files
     output:
@@ -153,15 +157,21 @@ workflow{
     //DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
     //DISAMBIGUATE_ch.view()
 
-    BWA_align_human_ch=Channel.fromList(params.SAM_completed_mouse)
-    BWA_align_human_ch.view()
-    DISAMBIGUATE_human=BWA_align_human(BWA_align_human_ch)
+    BWA_align_mouse_ch=Channel.fromList(params.SAM_completed_human)
+    BWA_align_mouse_ch.view()
+    BWA_align_mouse(BWA_align_mouse_ch)
   
-    DISAMBIGUATE_all=SAM_sort_name(Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*"))
-    DISAMBIGUATE_human=DISAMBIGUATE_all.filter(~/human.sam/)
-    DISAMBIGUATE_mouse=DISAMBIGUATE_all.filter(~/mouse.sam/)
-    DISAMBIGUATE_human.view()
-    DISAMBIGUATE_mouse.view()
+   // DISAMBIGUATE_all=SAM_sort_name(Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*"))
+    
+    
+    //DISAMBIGUATE_all=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/sam_sorted/*")
+ 
+    //DISAMBIGUATE_human=DISAMBIGUATE_all.filter{file -> file =~/human.sam/}
+    //DISAMBIGUATE_mouse=DISAMBIGUATE_all.filter{file -> file =~/mouse.sam/}
+    //DISAMBIGUATE_human.view()
+    //DISAMBIGUATE_mouse.view()
+    //DISAMBIGUATE_ch=DISAMBIGUATE_all.map{it ->[it.name.split('_')[0],it] }.groupTuple()
+    //DISAMBIGUATE_ch.view()
     //DISAMBIGUATE_mouse=SAM_sort_name_2(Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*mouse.sam"))
   
     
@@ -172,14 +182,8 @@ workflow{
     //DISAMBIGUATE_ch.view()
 
 
-//TESTING CHANNELS
-    //DISAMBIGUATE_human=Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*human.sam")
-
-    //DISAMBIGUATE_mouse=Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*mouse.sam")
-    //DISAMBIGUATE_human.view()
-    //DISAMBIGUATE_all=Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/")
-//TESTING CHANNELS END
     //convert_to_fastq_ch=NGS_disambiguate(DISAMBIGUATE_ch)
     //SAM_bam_to_fastq(convert_to_fastq_ch)
     //SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
 }
+

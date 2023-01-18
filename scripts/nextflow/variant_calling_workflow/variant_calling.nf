@@ -14,12 +14,12 @@ params.fasta_human="/data/local/reference/igenomes/Homo_sapiens/GATK/GRCh38/Sequ
 
 
 process GATK_haplotype_caller{
-       
+        publishDir "${params.outdir}", mode: 'symlink'
         input:
                 file RECAL_bam_file
         output:
-        path '*.vcf.gz'
-        path '*.tbi'
+                path '*.vcf.gz'
+                path '*.tbi'
 
         """
         variant_calling.sh ${RECAL_bam_file} ${params.fasta_human} 
@@ -32,7 +32,7 @@ process GATK_variant_filtration{
                 file VCF_file
                 file TBI_file
         output:
-        path '*'
+                path '*'
 
         """
         filter_variants.sh ${VCF_file} ${params.fasta_human} 
