@@ -6,7 +6,7 @@ process SEX_determine{
     output:
 
     """
-    ./sex_samples.sh ${SAM_file} >> ${params.GENDER_info_txt}
+    ./sex_samples.sh ${SAM_file} ${params.GENDER_info_txt}
     """
     }
 

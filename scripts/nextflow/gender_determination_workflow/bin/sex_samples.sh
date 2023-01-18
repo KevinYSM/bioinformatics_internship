@@ -12,7 +12,7 @@
 
 
  if (( $(echo "$ratio > 4.00" | bc -l) )); then
-     echo $1 $ratio "F"
+     echo $1 $ratio "F" >> $2
  else
-     echo $1 $ratio "M"
+     echo $1 $ratio "M" >> $2
  fi

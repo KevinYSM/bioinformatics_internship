@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 // Declare syntax version
+
+//Used to produce .vcf files following disambiguate workflow
 nextflow.enable.dsl=2
 
 // params.PROJECT_DIRECTORY="/data/local/proj/bioinformatics_project/data/processed/complete_rnaseq_workflow_nextflow"
@@ -30,7 +32,7 @@ process GATK_variant_filtration{
                 file VCF_file
                 file TBI_file
         output:
-        path '*.vcf.gz'
+        path '*'
 
         """
         filter_variants.sh ${VCF_file} ${params.fasta_human} 
