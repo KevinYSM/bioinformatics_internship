@@ -79,23 +79,27 @@ process BWA_align_mouse {
         path EXOME_trimmed_read_pair
     output:
         file "*.bam"
-        
+
+    //https://biology.stackexchange.com/questions/59493/how-to-convert-bwa-mem-output-to-bam-format-without-saving-sam-file
     """
     filename_mouse=\$(basename ${EXOME_trimmed_read_pair[0]} _Cut_0.fastq.gz)
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} | samtools sort -n -O BAM -o \${filename_mouse::-22}_mouse.sorted_by_name.bam -
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} | samtools sort -@7 -n -O BAM -o \${filename_mouse::-22}_mouse.sorted_by_name.bam -
     
     """
+
+   
 }
 
 
 process SAM_sort_name {
-    publishDir "${params.outdir}/sam_sorted", mode: 'symlink'
+    maxForks 9
+    publishDir "${params.outdir}/sam_sorted", mode: 'copy'
     input:
-        file ALIGNED_sam_file
+        file ALIGNED_bam_file
     output:
-        path '*.bam'
+        file '*.bam'
     """
-    SAM_sort_name.sh $ALIGNED_sam_file
+    SAM_sort_name.sh $ALIGNED_bam_file
     """
 }
 
@@ -134,6 +138,8 @@ process NGS_disambiguate {
         """
 }
 
+//NEED TO SORT BY READ NAME HERE
+
 process SAM_bam_to_fastq {
     publishDir "${params.outdir}/fastq" , mode: 'copy'
     input:
@@ -157,10 +163,10 @@ workflow{
     //DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
     //DISAMBIGUATE_ch.view()
 
-    BWA_align_mouse_ch=Channel.fromList(params.SAM_completed_human)
-    BWA_align_mouse_ch.view()
-    BWA_align_mouse(BWA_align_mouse_ch)
-  
+    
+    SAM_sort_ch=Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/*")
+    SAM_sort_ch.view()
+    SAM_sort_name(SAM_sort_ch)
    // DISAMBIGUATE_all=SAM_sort_name(Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*"))
     
     
