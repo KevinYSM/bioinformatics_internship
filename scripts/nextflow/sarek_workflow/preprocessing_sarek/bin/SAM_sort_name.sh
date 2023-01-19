@@ -8,4 +8,4 @@ set -o verbose
 
 bam=$1
 
-samtools sort -n -O BAM -o $(basename "$bam" ".bam").sorted_by_name.bam "$bam"
+samtools sort -n -@7 -O BAM -o $(basename "$bam" ".bam").sorted_by_name.bam "$bam"

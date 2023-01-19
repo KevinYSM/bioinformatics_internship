@@ -76,12 +76,12 @@ process SAM_sort_name_2{
 
 
 process NGS_disambiguate{
-       
+        publishDir "${params.outdir}/disambiguate" , mode: 'symlink'
         input:
-        path BAM_files
+                path BAM_files
 
         output:
-        path '*.disambiguatedSpeciesA.bam'
+                file '*'
 
         """
         if [ ${BAM_files[1]} == *"human"* ]
@@ -132,9 +132,9 @@ process SAM_sort_name_3{
 
 process HTSEQ_count{
         maxForks 2
-        publishDir "${params.outdir}", mode: 'copy'
+                publishDir "${params.outdir}/gene_counts", mode: 'copy'
         input:
-        file SORTED_bam_file
+                file SORTED_bam_file
 
         output:
         path '*.gene_counts'
@@ -225,30 +225,42 @@ process GATK_apply_bqsr_2 {
 }
 workflow{
         read_pairs_ch = Channel.fromFilePairs(params.RNA_raw_reads_directory, flat: true)
+
+        //Perform Alignment
         STAR_ch_human=STAR_human(read_pairs_ch)
         STAR_ch_mouse=STAR_mouse(read_pairs_ch)
 
-        DISAMBIGUATE_human=SAM_sort_name(STAR_ch_human)
-        DISAMBIGUATE_mouse=SAM_sort_name_2(STAR_ch_mouse)
+        //Sort all bam files
+        SAM_sort_name_ch=STAR_ch_human.mix(STAR_ch_mouse)
 
-        DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
-        //DISAMBIGUATE_ch.view()
+        //Sort bam files by name
+        SORTED_bam_files_ch=SAM_sort_name(SAM_sort_name_ch)
+
+        //Create .bam human and mouse tuples
+        DISAMBIGUATE_ch=SORTED_bam_files_ch.map{it ->[it.name.split('_')[0],it] }.groupTuple()
+        DISAMBIGUATE_ch.view()
+
+        //Perform Disambiguate on channel
         SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
+
+        //Sort disambiguated bam file by index
         GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
 
-       // HTSEQ_count(SAM_sort_ch)
+        //a) Perform HTSeq using Sorted Channel
+        HTSEQ_count(GATK_dupicates_ch)
 
+        //Mark duplicate reads
         GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
  
+        //Split N Cigar Reads
         GATK_base_recalibration_ch=GATK_split(GATK_split_ch)
 
-        GATK_base_recalibration_ch.view()
+        //Perform Two Rounds of Base Recalibration
         BQSR_1_ch=GATK_base_recalibrator_1(GATK_base_recalibration_ch)
-        BQSR_1_ch.view()
         GATK_base_recalibration_2_ch=GATK_apply_bqsr_1(BQSR_1_ch)
-
         BQSR_2_ch=GATK_base_recalibrator_2(GATK_base_recalibration_2_ch)
         GATK_apply_bqsr_2(BQSR_2_ch)
+
         //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
 
         //GATK_duplicates_ch=SAM_index(SAM_index_ch)
