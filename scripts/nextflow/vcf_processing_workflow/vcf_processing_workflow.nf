@@ -1,14 +1,12 @@
+params.vcf_files="/data/local/proj/bioinformatics_project/data/processed/variant_calling_workflow_nextflow/*.vcf.gz"
+params.outdir="/data/local/proj/bioinformatics_project/data/processed/vcf_processing_workflow/"
 process VEP {
-        publishDir "${params.outdir}/variant_calling", mode: 'symlink'
-
- 
+    publishDir "${params.outdir}", mode: 'copy'
 
     input:
         val(vcf_gz)
     output:
-        path("output_vep_updated/*.ann.vcf"), emit: vep_ch
-
- 
+        path("output_vep_updated/*.ann.vcf")
 
     script:
     """
@@ -23,7 +21,7 @@ process VEP {
     fi
     singularity exec \
         -B \$(pwd)/output_vep_updated:/output_vep_updated \
-        -B /data/bin/vep_cache:/.vep \
+        -B /data/vep_cache:/.vep \
         -B "\$vcf":/\$(basename "\$vcf") \
         /home/ubuntu/vep.sif /opt/vep/src/ensembl-vep/vep \
         --species homo_sapiens \
@@ -43,20 +41,12 @@ process VEP {
  
 
 process VCF2MAF {
-
- 
-
-        publishDir "${params.outdir}/variant_calling", mode: 'symlink'
-
- 
+    publishDir "${params.outdir}", mode: 'copy'
 
     input:
         val(vcf)
     output:
-        path("*.maf"), emit: vcf2maf_ch
-
- 
-
+        path("*.maf")
     script:
     """
     tumor_id=\$(basename "${vcf}" ".ann.vcf" |  awk -F"_L004" '{print \$1}')
@@ -65,7 +55,14 @@ process VCF2MAF {
         --input-vcf "${vcf}" \
         --output-maf \$(basename "${vcf}" ".vcf").maf \
         --tumor-id "\$tumor_id" \
-        --ref-fasta /data/bin/vep_cache/homo_sapiens/105_GRCh38/Homo_sapiens_assembly38.fasta \
+        --ref-fasta /data/vep_cache/homo_sapiens/105_GRCh38/Homo_sapiens_assembly38.fasta \
         --ncbi-build GRCh38
     """
+}
+
+workflow{
+    VEP_ch=Channel.fromPath(params.vcf_files)
+    VCF_ch=VEP(VEP_ch)
+    VCF_ch.view()
+    VCF2MAF(VCF_ch)
 }
