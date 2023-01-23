@@ -103,24 +103,16 @@ process SAM_sort_name {
     """
 }
 
-process SAM_sort_name_2 {
-    publishDir "${params.outdir}/sam_sorted", mode: 'symlink'
-    input:
-        file ALIGNED_sam_file
-    output:
-        path '*.bam'
-    """
-    SAM_sort_name.sh $ALIGNED_sam_file
-    """
-}
 
 
 process NGS_disambiguate {
-    publishDir "${params.outdir}/disambiguate" , mode: 'copy', pattern: "*"//save disambiguatedSpeciesA.bam and .txts
+        maxForks 7
+    publishDir "${params.outdir}/disambiguate" , mode: 'copy'
     input:
-        path BAM_files
+        tuple val(key), path(BAM_files)
     output:
-        path '*.disambiguatedSpeciesA.bam'
+        file '*.disambiguatedSpeciesA.bam'
+        file '*.txt'
     """
        
         if [ ${BAM_files[1]} == *"human"* ]
@@ -140,15 +132,31 @@ process NGS_disambiguate {
 
 //NEED TO SORT BY READ NAME HERE
 
+process SAM_sort{
+        maxForks 2
+        publishDir "${params.outdir}/sam_sort_name_2" , mode: 'symlink'
+        input:
+                file DISAMBIGUATE_bam_file
+                file TXT_file
+
+        output:
+                file '*.bam'
+
+        """
+        SAM_sort_name.sh $DISAMBIGUATE_bam_file
+        """
+}
 process SAM_bam_to_fastq {
-    publishDir "${params.outdir}/fastq" , mode: 'copy'
-    input:
-        file DISAMBIGUATED_bam_file
-    output:
-        path "*.fastq*"
-    """
-    samtools fastq $DISAMBIGUATED_bam_file > \$(basename "$DISAMBIGUATED_bam_file" ".bam").fastq
-    """
+        maxForks 4
+        publishDir "${params.outdir}/fastq" , mode: 'copy'
+        input:
+                file SORTED_bam_file
+        output:
+                path "*.fastq.gz"
+        """
+        samtools fastq $SORTED_bam_file -1 \$(basename "$SORTED_bam_file" .bam).read1.fastq.gz -2 \$(basename "$SORTED_bam_file" .bam).read2.fastq.gz  -n
+
+        """
 }
 
 
@@ -164,13 +172,14 @@ workflow{
     //DISAMBIGUATE_ch.view()
 
     
-    SAM_sort_ch=Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/*")
-    SAM_sort_ch.view()
-    SAM_sort_name(SAM_sort_ch)
-   // DISAMBIGUATE_all=SAM_sort_name(Channel.fromPath("/data/local/proj/bioinformatics_project/data/interim/exome/sam/batch1/*"))
-    
-    
-    //DISAMBIGUATE_all=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/sam_sorted/*")
+   
+   
+    DISAMBIGUATE_all=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/sam_sorted/*.bam")
+    DISAMBIGUATE_ch=DISAMBIGUATE_all.map{it ->[it.name.split('_')[0],it] }.groupTuple()
+   
+    SAM_sort_disambiguate_ch=NGS_disambiguate(DISAMBIGUATE_ch)
+    BAM_to_fastq_ch=SAM_sort(SAM_sort_disambiguate_ch)
+    SAM_bam_to_fastq(BAM_to_fastq_ch)
  
     //DISAMBIGUATE_human=DISAMBIGUATE_all.filter{file -> file =~/human.sam/}
     //DISAMBIGUATE_mouse=DISAMBIGUATE_all.filter{file -> file =~/mouse.sam/}
