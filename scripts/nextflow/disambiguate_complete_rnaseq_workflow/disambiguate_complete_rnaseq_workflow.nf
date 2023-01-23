@@ -7,7 +7,7 @@ params.outdir="/data/local/proj/bioinformatics_project/data/processed/disambigua
 
 
 //params.RNA_aligned_directory="/data/local/proj/bioinformatics_project/data/interim/rna/aligned"
-params.RNA_raw_reads_directory="/data/local/proj/bioinformatics_project/data/raw/rna/batch2/*_L004_R{1,2}_*.fastq.gz"
+params.RNA_raw_reads_directory="/data/local/proj/bioinformatics_project/data/raw/rna/*_L004_R{1,2}_*.fastq.gz"
 params.fasta_human="/data/local/reference/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.fasta"
 params.fasta_mouse="/data/local/reference/mouse/GCF_000001635.27_GRCm39_genomic.fna"
 params.gtf_human="/data/local/reference/igenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf"
@@ -21,7 +21,7 @@ params.k2="/data/local/reference/GATK_resource_bundle/hg38/hg38/Mills_and_1000G_
 
 process STAR_human{
         maxForks 1
-        memory '40G'
+
         input:
                 file RNA_read_pair
         output:
@@ -34,7 +34,6 @@ process STAR_human{
 
 process STAR_mouse{
         maxForks 1
-        memory '40G'
         input:
                 file RNA_read_pair
 
@@ -48,6 +47,7 @@ process STAR_mouse{
 }
 
 process SAM_sort_name{
+        publishDir "${params.outdir}/SAM_sort_name" , mode: 'symlink'
         input:
         file ALIGNED_bam_file
 
@@ -57,7 +57,6 @@ process SAM_sort_name{
         """
         SAM_sort_name.sh $ALIGNED_bam_file
         """
-
 }
 
 process SAM_sort_name_2{
@@ -70,27 +69,32 @@ process SAM_sort_name_2{
         """
         SAM_sort_name.sh $ALIGNED_bam_file
         """
-
 }
 
 
 
 process NGS_disambiguate{
-        publishDir "${params.outdir}/disambiguate" , mode: 'symlink'
+        publishDir "${params.outdir}/disambiguate/" , mode: 'copy'
+
         input:
-                path BAM_files
+                tuple val(key), path(BAM_files)
 
         output:
-                file '*'
+                file '*.disambiguatedSpeciesA.bam'
+                file '*.txt'
 
         """
-        if [ ${BAM_files[1]} == *"human"* ]
+       if [ ${BAM_files[0]} == *"human"* ]
         then
-                NGS_disambiguate.sh ${BAM_files[1]} ${BAM_files[0]}
-               
-        elif [ ${BAM_files[1]} == *"mouse"* ]      
-        then
+                echo "human first"
+                echo ${BAM_files}
                 NGS_disambiguate.sh ${BAM_files[0]} ${BAM_files[1]}
+               
+        elif [ ${BAM_files[0]} == *"mouse"* ]      
+        then
+                echo "mouse first"
+                echo ${BAM_files}
+                NGS_disambiguate.sh ${BAM_files[1]} ${BAM_files[0]}
 
         else
                 echo "Error"
@@ -100,16 +104,19 @@ process NGS_disambiguate{
 }
 
 process SAM_sort{
-     
+        publishDir "${params.outdir}/SAM_sort" , mode: 'symlink'
         input:
-        file DISAMBIGUATE_bam_file
+                file DISAMBIGUATE_bam_file
+                file DISAMBIGUATED_txt
 
         output:
-        path '*.bam'
+                path '*.bam'
 
 
         """
         SAM_sort.sh $DISAMBIGUATE_bam_file
+
+        
         """
 }
 
@@ -119,7 +126,7 @@ process SAM_sort_name_3{
         file ALIGNED_bam_file
 
         output:
-        path '*.bam'
+                path '*.bam'
 
         """
         SAM_sort_name.sh $ALIGNED_bam_file
@@ -131,25 +138,26 @@ process SAM_sort_name_3{
 
 
 process HTSEQ_count{
-        maxForks 2
+        maxForks 3
                 publishDir "${params.outdir}/gene_counts", mode: 'copy'
         input:
                 file SORTED_bam_file
 
         output:
-        path '*.gene_counts'
+                file '*.gene_counts'
 
         """
         HTSEQ_count.sh $SORTED_bam_file
         """
 }
 process GATK_mark_duplicates{
-        maxForks 2
+         maxForks 3
+        publishDir "${params.outdir}/mark_duplicates", mode: 'symlink'
         input:
-        file SORTED_bam_file
+                file SORTED_bam_file
 
         output:
-        path '*.bam'
+                file '*.bam'
 
         """
         GATK_mark_duplicates.sh $SORTED_bam_file 
@@ -157,10 +165,11 @@ process GATK_mark_duplicates{
 }
 
 process GATK_split{
-        maxForks 2
-        publishDir "${params.outdir}", mode: 'symlink'
+      maxForks 3
+        publishDir "${params.outdir}/split", mode: 'symlink'
+        
         input:
-        file DUPLICATES_bam_file
+                file DUPLICATES_bam_file
 
         output:
         path '*.bam'
@@ -169,13 +178,28 @@ process GATK_split{
         """
 }
 
+process GATK_base_recal_all{
+        maxForks 3
+        publishDir "${params.outdir}", mode: 'copy'
+     
+        input:
+                file SPLIT_bam_file
+        output:
+                file "*.recal.pass2.bam"
+                file "*.recal.pass2.table"
+        """
+        GATK_base_recal_all.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2}
+        """
+}
+
 process GATK_base_recalibrator_1{
         maxForks 2
         input:
-        file SPLIT_bam_file
+                file SPLIT_bam_file
 
         output:
-        path '*.recal.pass1.table'
+                path '*.recal.pass1.table'
+                
 
         """
         GATK_base_recalibrator_1.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2}
@@ -195,6 +219,18 @@ process GATK_apply_bqsr_1 {
         """
 }
 
+process GATK_base_recal_and_bqsr_1{
+        input:
+                file SPLIT_bam_file
+
+        output:
+                path '*.recal.pass1.bam'
+
+        """
+        GATK_base_recalibrator_1.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2} | GATK_apply_bqsr_1.sh 
+        """
+}
+
 process GATK_base_recalibrator_2 {
         maxForks 2
         input:
@@ -210,7 +246,7 @@ process GATK_base_recalibrator_2 {
 
 process GATK_apply_bqsr_2 {
         maxForks 2
-        publishDir "${params.outdir}", mode: 'symlink'
+        publishDir "${params.outdir}", mode: 'copy'
         input:
         file BASE_recalibrated_file
 
@@ -227,39 +263,38 @@ workflow{
         read_pairs_ch = Channel.fromFilePairs(params.RNA_raw_reads_directory, flat: true)
 
         //Perform Alignment
-        STAR_ch_human=STAR_human(read_pairs_ch)
-        STAR_ch_mouse=STAR_mouse(read_pairs_ch)
+        ///STAR_ch_human=STAR_human(read_pairs_ch)
+        ///STAR_ch_mouse=STAR_mouse(read_pairs_ch)
 
         //Sort all bam files
-        SAM_sort_name_ch=STAR_ch_human.mix(STAR_ch_mouse)
+        ///SAM_sort_name_ch=STAR_ch_human.mix(STAR_ch_mouse)
 
         //Sort bam files by name
-        SORTED_bam_files_ch=SAM_sort_name(SAM_sort_name_ch)
+        ///SORTED_bam_files_ch=SAM_sort_name(SAM_sort_name_ch)
 
         //Create .bam human and mouse tuples
-        DISAMBIGUATE_ch=SORTED_bam_files_ch.map{it ->[it.name.split('_')[0],it] }.groupTuple()
-        DISAMBIGUATE_ch.view()
+        ///SORTED_bam_files_ch=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/SAM_sort_name/*.bam" )
+        ///DISAMBIGUATE_ch=SORTED_bam_files_ch.map{it ->[it.name.split('_')[0],it] }.groupTuple()
+        ///DISAMBIGUATE_ch.view()
 
         //Perform Disambiguate on channel
-        SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
+        ///SAM_sort_ch=NGS_disambiguate(DISAMBIGUATE_ch)
 
         //Sort disambiguated bam file by index
-        GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
-
+        ///GATK_duplicates_ch=SAM_sort(SAM_sort_ch)
+        ///GATK_duplicates_ch=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/SAM_sort/PCB-39-PDX_S8_L004.disambiguatedSpeciesA.sorted.bam")
         //a) Perform HTSeq using Sorted Channel
-        HTSEQ_count(GATK_dupicates_ch)
+        ///HTSEQ_count(GATK_duplicates_ch)
 
         //Mark duplicate reads
-        GATK_split_ch=GATK_mark_duplicates(GATK_duplicates_ch)
+        ///GATK_split_ch=GATK_mark_duplicates()
  
         //Split N Cigar Reads
-        GATK_base_recalibration_ch=GATK_split(GATK_split_ch)
+        ///GATK_base_recalibration_ch=GATK_split(Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/mark_duplicates/*.bam"))
 
         //Perform Two Rounds of Base Recalibration
-        BQSR_1_ch=GATK_base_recalibrator_1(GATK_base_recalibration_ch)
-        GATK_base_recalibration_2_ch=GATK_apply_bqsr_1(BQSR_1_ch)
-        BQSR_2_ch=GATK_base_recalibrator_2(GATK_base_recalibration_2_ch)
-        GATK_apply_bqsr_2(BQSR_2_ch)
+        GATK_base_recal_all(Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/split/PCB-54-PDX_S10_L004.disambiguatedSpeciesA.sorted.MarkDuplicates.split.bam"))
+
 
         //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
 
