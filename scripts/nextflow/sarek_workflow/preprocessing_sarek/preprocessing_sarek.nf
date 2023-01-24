@@ -86,8 +86,6 @@ process BWA_align_mouse {
     bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} | samtools sort -@7 -n -O BAM -o \${filename_mouse::-22}_mouse.sorted_by_name.bam -
     
     """
-
-   
 }
 
 
@@ -106,7 +104,7 @@ process SAM_sort_name {
 
 
 process NGS_disambiguate {
-        maxForks 7
+        maxForks 20
     publishDir "${params.outdir}/disambiguate" , mode: 'copy'
     input:
         tuple val(key), path(BAM_files)
@@ -147,7 +145,7 @@ process SAM_sort{
         """
 }
 process SAM_bam_to_fastq {
-        maxForks 4
+        maxForks 2
         publishDir "${params.outdir}/fastq" , mode: 'copy'
         input:
                 file SORTED_bam_file
