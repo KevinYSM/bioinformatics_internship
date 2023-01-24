@@ -187,6 +187,7 @@ process GATK_base_recal_all{
         output:
                 file "*.recal.pass2.bam"
                 file "*.recal.pass2.table"
+                file "*.pass2.bai"
         """
         GATK_base_recal_all.sh $SPLIT_bam_file ${params.fasta_human} ${params.k1} ${params.k2}
         """
@@ -293,7 +294,7 @@ workflow{
         ///GATK_base_recalibration_ch=GATK_split(Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/mark_duplicates/*.bam"))
 
         //Perform Two Rounds of Base Recalibration
-        GATK_base_recal_all(Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/split/PCB-54-PDX_S10_L004.disambiguatedSpeciesA.sorted.MarkDuplicates.split.bam"))
+        GATK_base_recal_all(Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/split/PCB-09*.split.bam"))
 
 
         //HTSEQ_count_ch=DISAMBIGUATE_human.concat(DISAMBIGUATE_mouse)
