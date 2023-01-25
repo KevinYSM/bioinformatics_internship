@@ -27,3 +27,11 @@ gatk BaseRecalibrator --tmp-dir "$tmpdir" \
     --known-sites "$k1" \
     --known-sites "$k2" \
     -O $(basename "$bam" ".bam").recal.pass1.table
+
+    #draft
+
+gatk ApplyBQSR --tmp-dir "$tmpdir" \
+    -I "$bam" \
+    -R "$fasta" \
+    --bqsr-recal-file "$(basename "$bam" ".bam").recal.pass1.table" \
+    -O $(basename "$bam" ".bam").recal.pass1.bam 

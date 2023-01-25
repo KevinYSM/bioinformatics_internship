@@ -22,4 +22,4 @@ gatk ApplyBQSR --tmp-dir "$tmpdir" \
     -I "$bam" \
     -R "$fasta" \
     --bqsr-recal-file "$bqsr" \
-    -O $(basename "$bam" ".bam").recal.pass1.bam
+    -O $(basename "$bam" ".bam").recal.pass1.bam 
