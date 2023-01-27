@@ -1,5 +1,6 @@
 params.vcf_files="/data/local/proj/bioinformatics_project/data/processed/variant_calling_workflow_nextflow/*.vcf.gz"
 params.outdir="/data/local/proj/bioinformatics_project/data/processed/vcf_processing_workflow/"
+
 process VEP {
     publishDir "${params.outdir}", mode: 'copy'
 
