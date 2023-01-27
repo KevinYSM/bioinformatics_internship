@@ -276,6 +276,8 @@ workflow{
         //Create .bam human and mouse tuples
         ///SORTED_bam_files_ch=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/disambiguate_complete_rnaseq_workflow_nextflow/SAM_sort_name/*.bam" )
         ///DISAMBIGUATE_ch=SORTED_bam_files_ch.map{it ->[it.name.split('_')[0],it] }.groupTuple()
+
+        // have to add .collect before .map
         ///DISAMBIGUATE_ch.view()
 
         //Perform Disambiguate on channel
