@@ -1,5 +1,5 @@
 nextflow.enable.dsl=2
-params.EXOME_trimmed_reads_directory="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/*_R{1,2}_*.fastq.gz"
+params.EXOME_trimmed_reads_directory="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/unfinished_preprocessing_umis/*_R{1,2}_*.fastq.gz"
 params.TEST_EXOME_trimmed_reads_directory="/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/50*_R{1,2}_*.fastq.gz"
 params.outdir="/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/"
 params.disambiguate_outdir="/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/disambiguate/"
@@ -8,82 +8,34 @@ params.trimmed_umis="/data/local/proj/bioinformatics_project/data/interim/exome/
 params.fasta_human="/data/local/reference/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.fasta"
 params.fasta_mouse="/data/local/reference/mouse/GCF_000001635.27_GRCm39_genomic.fna"
 
-params.SAM_completed_mouse=
-[
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/36-PDX_S3_L001_R1_001.1673520115986_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/36-PDX_S3_L001_R2_001.1673520115986_Cut_0.fastq.gz" 
-    ]
-    ,
-    [ "/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB136-TIL_S15_L002_R1_001.1673520035253_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB136-TIL_S15_L002_R2_001.1673520035253_Cut_0.fastq.gz"
-    ]
-    ,
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB36-TIL_S11_L002_R1_001.1673521649889_Cut_0.fastq.gz"
-    , "/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB36-TIL_S11_L002_R2_001.1673521649889_Cut_0.fastq.gz"
-    ]
-]
-
-params.SAM_completed_human=
-[
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/39-PDX_S4_L001_R1_001.1673522893147_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/39-PDX_S4_L001_R2_001.1673522893147_Cut_0.fastq.gz"
-    ]
-    ,
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/54-PDX_S6_L001_R1_001.1673524805153_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/54-PDX_S6_L001_R2_001.1673524805153_Cut_0.fastq.gz"
-    ]
-    ,
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB-09-PDX_S1_L001_R1_001.1673518540275_Cut_0.fastq.gz",
-    "/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB-09-PDX_S1_L001_R2_001.1673518540275_Cut_0.fastq.gz"
-    ]
-    ,
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB-30-PDX_S6_L001_R1_001.1673520055765_Cut_0.fastq.gz"
-    , "/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB-30-PDX_S6_L001_R2_001.1673520055765_Cut_0.fastq.gz"
-    ],
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB37-TIL_S13_L002_R1_001.1673522037838_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB37-TIL_S13_L002_R2_001.1673522037838_Cut_0.fastq.gz"
-    ],
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB57-PDX_S3_L001_R1_001.1673523288426_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB57-PDX_S3_L001_R2_001.1673523288426_Cut_0.fastq.gz"
-    ],
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB64-PDX_S1_L001_R1_001.1673524805265_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB64-PDX_S1_L001_R2_001.1673524805265_Cut_0.fastq.gz"
-    ],
-    ["/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB75-PDX_S5_L001_R1_001.1673523141941_Cut_0.fastq.gz"
-    ,"/home/ubuntu/data/local/proj/bioinformatics_project/data/interim/exome/trimmed_umis/PCB75-PDX_S5_L001_R2_001.1673523141941_Cut_0.fastq.gz"
-    ]
-]
 
 process BWA_align_human {
-    publishDir "${params.outdir}/sam", mode: 'copy'
-    maxForks 3
+    publishDir "${params.outdir}/bam", mode: 'symlink'
+    maxForks 2
     input:
-        path EXOME_trimmed_read_pair
+        file EXOME_trimmed_read_pair
     output:
         path "*.bam"
     """
-    filename_human=\$(basename ${EXOME_trimmed_read_pair[0]} _Cut_0.fastq.gz)
-    echo ${EXOME_trimmed_read_pair}
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} > ./\${filename_human::-21}_human.sam
-    samtools view -bS \${filename_human::-21}_human.sam > \${filename_human::-21}.bam
-    rm -f \${filename_human::-21}_human.sam 
+    filename_human=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_human} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} | samtools sort -@7 -n -O BAM -o \${filename_human::-22}_human.sorted_by_name.bam -
 
     """
 }
 
 
 process BWA_align_mouse {
-    publishDir "${params.outdir}", mode: 'copy'
-    maxForks 4
+    publishDir "${params.outdir}/bam", mode: 'symlink'
+    maxForks 2
     input:
-        path EXOME_trimmed_read_pair
+        file EXOME_trimmed_read_pair
     output:
         file "*.bam"
 
     //https://biology.stackexchange.com/questions/59493/how-to-convert-bwa-mem-output-to-bam-format-without-saving-sam-file
     """
-    filename_mouse=\$(basename ${EXOME_trimmed_read_pair[0]} _Cut_0.fastq.gz)
-    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[0]} ${EXOME_trimmed_read_pair[1]} | samtools sort -@7 -n -O BAM -o \${filename_mouse::-22}_mouse.sorted_by_name.bam -
+    filename_mouse=\$(basename ${EXOME_trimmed_read_pair[1]} _Cut_0.fastq.gz)
+    bwa mem -t 7 -K 100000000 -Y ${params.fasta_mouse} ${EXOME_trimmed_read_pair[1]} ${EXOME_trimmed_read_pair[2]} | samtools sort -@7 -n -O BAM -o \${filename_mouse::-22}_mouse.sorted_by_name.bam -
     
     """
 }
@@ -91,7 +43,7 @@ process BWA_align_mouse {
 
 process SAM_sort_name {
     maxForks 9
-    publishDir "${params.outdir}/sam_sorted", mode: 'copy'
+    publishDir "${params.outdir}/sam_sorted", mode: 'symlink'
     input:
         file ALIGNED_bam_file
     output:
@@ -162,19 +114,20 @@ process SAM_bam_to_fastq {
 
 
 workflow{
-    //trimmed_read_pairs_ch=Channel.fromFilePairs(params.EXOME_trimmed_reads_directory, flat:true)
-    //trimmed_read_pairs_ch.view();
-    //DISAMBIGUATE_human=BWA_align_human(trimmed_read_pairs_ch)
-    //DISAMBIGUATE_mouse=BWA_align_mouse(trimmed_read_pairs_ch)
-    //DISAMBIGUATE_ch=DISAMBIGUATE_human.merge(DISAMBIGUATE_mouse)
+    trimmed_read_pairs_ch=Channel.fromFilePairs(params.EXOME_trimmed_reads_directory, flat:true)
+  
+    DISAMBIGUATE_human=BWA_align_human(trimmed_read_pairs_ch)
+    DISAMBIGUATE_mouse=BWA_align_mouse(trimmed_read_pairs_ch)
+    DISAMBIGUATE_all=DISAMBIGUATE_human.mix(DISAMBIGUATE_mouse)
+    DISAMBIGUATE_all.view()
     //DISAMBIGUATE_ch.view()
 
     
    
    
-    DISAMBIGUATE_all=Channel.fromPath("/data/local/proj/bioinformatics_project/data/processed/sarek_workflow/sam_sorted/*.bam")
+    
     DISAMBIGUATE_ch=DISAMBIGUATE_all.map{it ->[it.name.split('_')[0],it] }.groupTuple()
-   
+    DISAMBIGUATE_ch.view()
     SAM_sort_disambiguate_ch=NGS_disambiguate(DISAMBIGUATE_ch)
     BAM_to_fastq_ch=SAM_sort(SAM_sort_disambiguate_ch)
     SAM_bam_to_fastq(BAM_to_fastq_ch)
